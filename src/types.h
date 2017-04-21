@@ -137,6 +137,9 @@ enum Variant {
 #ifdef LOSERS
   LOSERS_VARIANT,
 #endif
+#ifdef HELPMATE
+  HELPMATE_VARIANT,
+#endif
 #ifdef RACE
   RACE_VARIANT,
 #endif
@@ -151,6 +154,9 @@ enum Variant {
   //subvariants
 #ifdef GIVEAWAY
   GIVEAWAY_VARIANT,
+#endif
+#ifdef HELPMATE
+  ANTIHELPMATE_VARIANT,
 #endif
 #ifdef SUICIDE
   SUICIDE_VARIANT,
@@ -204,6 +210,9 @@ static std::vector<std::string> variants = {
 #ifdef LOSERS
 "losers",
 #endif
+#ifdef HELPMATE
+"helpmate",
+#endif
 #ifdef RACE
 "racingkings",
 #endif
@@ -216,6 +225,9 @@ static std::vector<std::string> variants = {
 //subvariants
 #ifdef GIVEAWAY
 "giveaway",
+#endif
+#ifdef HELPMATE
+"antihelpmate",
 #endif
 #ifdef SUICIDE
 "suicide",
@@ -760,6 +772,10 @@ inline Variant main_variant(Variant v) {
 #ifdef GIVEAWAY
   case GIVEAWAY_VARIANT:
       return ANTI_VARIANT;
+#endif
+#ifdef HELPMATE
+  case ANTIHELPMATE_VARIANT:
+      return HELPMATE_VARIANT;
 #endif
 #ifdef SUICIDE
   case SUICIDE_VARIANT:
