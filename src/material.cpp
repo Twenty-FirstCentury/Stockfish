@@ -356,6 +356,9 @@ namespace {
 #ifdef ATOMIC
   Endgame<ATOMIC_VARIANT, KXK> EvaluateAtomicKXK[] = { Endgame<ATOMIC_VARIANT, KXK>(WHITE), Endgame<ATOMIC_VARIANT, KXK>(BLACK) };
 #endif
+#ifdef ATOMIC
+  Endgame<HELPMATE_VARIANT, KXK> EvaluateHelpmateKXK[] = { Endgame<HELPMATE_VARIANT, KXK>(WHITE), Endgame<HELPMATE_VARIANT, KXK>(BLACK) };
+#endif
 
   Endgame<CHESS_VARIANT, KBPsK>  ScaleKBPsK[]  = { Endgame<CHESS_VARIANT, KBPsK>(WHITE),  Endgame<CHESS_VARIANT, KBPsK>(BLACK) };
   Endgame<CHESS_VARIANT, KQKRPs> ScaleKQKRPs[] = { Endgame<CHESS_VARIANT, KQKRPs>(WHITE), Endgame<CHESS_VARIANT, KQKRPs>(BLACK) };
@@ -500,6 +503,17 @@ Entry* probe(const Position& pos) {
               return e;
           }
   break;
+#endif
+#ifdef HELPMATE
+  else if (pos.is_helpmate())
+  {
+      for (Color c = WHITE; c <= BLACK; ++c)
+          if (is_KXK(pos, c))
+          {
+              e->evaluationFunction = &EvaluateHelpmateKXK[c];
+              return e;
+          }
+  }
 #endif
   case CHESS_VARIANT:
   for (Color c : { WHITE, BLACK })
