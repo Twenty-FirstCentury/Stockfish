@@ -213,6 +213,9 @@ public:
 #ifdef PLACEMENT
   bool is_placement() const;
 #endif
+#ifdef RELAY
+  bool is_relay() const;
+#endif
 #ifdef EXTINCTION
   bool is_extinction() const;
   bool is_extinction_win() const;
@@ -903,6 +906,12 @@ inline bool Position::is_loop() const {
 #ifdef PLACEMENT
 inline bool Position::is_placement() const {
   return var == CRAZYHOUSE_VARIANT && subvar == PLACEMENT_VARIANT;
+}
+#endif
+
+#ifdef RELAY
+inline bool Position::is_relay() const {
+  return subvar == RELAY_VARIANT;
 }
 #endif
 
