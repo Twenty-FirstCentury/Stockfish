@@ -843,6 +843,39 @@ Bitboard Position::slider_blockers(Bitboard sliders, Square s, Bitboard& pinners
   return blockers;
 }
 
+#ifdef RELAY
+template<PieceType Pt>
+Bitboard Position::relayed_attacks_from(Square s, Color c) const {
+
+  Bitboard b = 0;
+  Bitboard attacks = attacks_from<Pt>(s) & pieces(c);
+
+  while (attacks)
+      b |= attacks_from<Pt>(pop_lsb(&attacks));
+  return b;
+}
+
+template<PieceType Pt>
+Bitboard Position::relayed_attacks_from(Square s, Color c, Bitboard occupied) const {
+
+  Bitboard b = 0;
+  Bitboard attacks = attacks_bb<Pt>(s, occupied) & pieces(c);
+
+  while (attacks)
+      b |= attacks_from<Pt>(pop_lsb(&attacks));
+  return b;
+}
+
+Bitboard Position::relayed_attackers_to(Square s, Color c, Bitboard occupied) const {
+
+  return  (attacks_from<PAWN>(s, c)                     & pieces(c, PAWN))
+        | (relayed_attacks_from<KNIGHT>(s, c)           & pieces(c, KNIGHT))
+        | (relayed_attacks_from<  ROOK>(s, c, occupied) & pieces(c,   ROOK, QUEEN))
+        | (relayed_attacks_from<BISHOP>(s, c, occupied) & pieces(c, BISHOP, QUEEN))
+        | (relayed_attacks_from<KING>(s, c)             & pieces(c, KING));
+}
+#endif
+
 
 /// Position::attackers_to() computes a bitboard of all pieces which attack a
 /// given square. Slider attacks use the occupied bitboard to indicate occupancy.
@@ -1769,6 +1802,10 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
 
   // Calculate checkers bitboard (if move gives check)
   st->checkersBB = givesCheck ? attackers_to(square<KING>(them)) & pieces(us) : 0;
+#ifdef RELAY
+  if (is_relay() && givesCheck)
+      st->checkersBB |= relayed_attackers_to(square<KING>(them), us);
+#endif
 
 #ifdef CRAZYHOUSE
   if (is_house() && type_of(m) != DROP && is_promoted(from))
