@@ -789,7 +789,7 @@ inline Variant main_variant(Variant v) {
 #endif
 #ifdef RELAY
   case RELAY_VARIANT:
-      return RELAY_VARIANT;
+      return CHESS_VARIANT;
 #endif
 #ifdef SLIPPEDGRID
   case SLIPPEDGRID_VARIANT:

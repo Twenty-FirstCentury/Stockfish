@@ -132,10 +132,6 @@ public:
   Bitboard slider_attackers_to(Square s) const;
   Bitboard slider_attackers_to(Square s, Bitboard occupied) const;
 #endif
-#ifdef RELAY
-  Bitboard relayed_attackers_to(Square s, Color c) const;
-  Bitboard relayed_attackers_to(Square s, Color c, Bitboard occupied) const;
-#endif
   Bitboard attacks_from(PieceType pt, Square s) const;
   template<PieceType> Bitboard attacks_from(Square s) const;
   template<PieceType> Bitboard attacks_from(Square s, Color c) const;
@@ -557,12 +553,6 @@ inline Bitboard Position::slider_attackers_to(Square s) const {
 
 inline bool Position::kings_adjacent() const {
   return adjacent_squares_bb(byTypeBB[KING]) & byTypeBB[KING];
-}
-#endif
-
-#ifdef RELAY
-inline Bitboard Position::relayed_attackers_to(Square s, Color c) const {
-  return relayed_attackers_to(s, c, byTypeBB[ALL_PIECES]);
 }
 #endif
 
