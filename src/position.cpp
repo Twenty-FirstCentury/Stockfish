@@ -625,6 +625,15 @@ void Position::set_check_info(StateInfo* si) const {
   else
 #endif
   si->checkSquares[KING]   = 0;
+#ifdef RELAY
+  if (is_relay()) {
+  si->checkSquares[KNIGHT] |= relayed_attacks_from<KNIGHT>(ksq, sideToMove);
+  si->checkSquares[BISHOP] |= relayed_attacks_from<BISHOP>(ksq, sideToMove);
+  si->checkSquares[ROOK]   |= relayed_attacks_from<ROOK>(ksq, sideToMove);
+  si->checkSquares[QUEEN]  |= si->checkSquares[BISHOP] | si->checkSquares[ROOK];
+  si->checkSquares[KING]   |= relayed_attacks_from<KING>(ksq, sideToMove);
+  }
+#endif
 }
 
 
@@ -875,7 +884,6 @@ Bitboard Position::relayed_attackers_to(Square s, Color c, Bitboard occupied) co
         | (relayed_attacks_from<KING>(s, c)             & pieces(c, KING));
 }
 #endif
-
 
 /// Position::attackers_to() computes a bitboard of all pieces which attack a
 /// given square. Slider attacks use the occupied bitboard to indicate occupancy.
