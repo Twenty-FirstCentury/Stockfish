@@ -223,7 +223,7 @@ static std::vector<std::string> variants = {
 "twokings",
 #endif
 //subvariants
-#ifdef HELPMATE
+#ifdef ANTIHELPMATE
 "antihelpmate",
 #endif
 #ifdef GIVEAWAY
@@ -769,15 +769,13 @@ inline Variant main_variant(Variant v) {
       return v;
   switch(v)
   {
-#ifdef GIVEAWAY
-  case GIVEAWAY_VARIANT:
-      return ANTI_VARIANT;
-#endif
-#ifdef HELPMATE
 #ifdef ANTIHELPMATE
   case ANTIHELPMATE_VARIANT:
       return HELPMATE_VARIANT;
 #endif
+#ifdef GIVEAWAY
+  case GIVEAWAY_VARIANT:
+      return ANTI_VARIANT;
 #endif
 #ifdef SUICIDE
   case SUICIDE_VARIANT:

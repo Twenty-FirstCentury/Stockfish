@@ -1457,7 +1457,6 @@ moves_loop: // When in check, search starts from here
           if (pos.is_helpmate())
               value = -value;
 #endif
-      }
 
           if (didLMR && !captureOrPromotion)
           {
