@@ -328,17 +328,8 @@ namespace {
         Bitboard b = pos.attacks_from<Pt>(from) & target;
 #ifdef RELAY
         if (V == RELAY_VARIANT)
-        {
-            const Bitboard defenders = pos.attackers_to(from) & pos.pieces(us);
-            if (defenders & pos.pieces(KNIGHT))
-                b |= pos.attacks_from<KNIGHT>(from) & target;
-            if (defenders & pos.pieces(QUEEN, BISHOP))
-                b |= pos.attacks_from<BISHOP>(from) & target;
-            if (defenders & pos.pieces(QUEEN, ROOK))
-                b |= pos.attacks_from<ROOK>(from) & target;
-            if (defenders & pos.pieces(KING))
-                b |= pos.attacks_from<KING>(from) & target;
-        }
+            if (pos.attacks_from<Pt>(from) & pos.pieces(us, Pt))
+                b |= pos.attacks_from<Pt>(from) & target;
 #endif
 
         if (Checks)
@@ -433,15 +424,9 @@ namespace {
 #endif
 #ifdef RELAY
         if (V == RELAY_VARIANT)
-        {
-            const Bitboard defenders = pos.attackers_to(ksq) & pos.pieces(Us);
-            if (defenders & pos.pieces(KNIGHT))
-                b |= pos.attacks_from<KNIGHT>(ksq) & target;
-            if (defenders & pos.pieces(QUEEN, BISHOP))
-                b |= pos.attacks_from<BISHOP>(ksq) & target;
-            if (defenders & pos.pieces(QUEEN, ROOK))
-                b |= pos.attacks_from<ROOK>(ksq) & target;
-        }
+            for (PieceType pt = KNIGHT; pt <= KING; ++pt)
+                if (pos.attacks_from(pt, ksq) & pos.pieces(Us, pt))
+                    b |= pos.attacks_from(pt, ksq) & target;
 #endif
         while (b)
             *moveList++ = make_move(ksq, pop_lsb(&b));
