@@ -625,15 +625,6 @@ void Position::set_check_info(StateInfo* si) const {
   else
 #endif
   si->checkSquares[KING]   = 0;
-#ifdef RELAY
-  if (is_relay()) {
-  si->checkSquares[KNIGHT] |= relayed_attacks_from<KNIGHT>(ksq, sideToMove);
-  si->checkSquares[BISHOP] |= relayed_attacks_from<BISHOP>(ksq, sideToMove);
-  si->checkSquares[ROOK]   |= relayed_attacks_from<ROOK>(ksq, sideToMove);
-  si->checkSquares[QUEEN]  |= si->checkSquares[BISHOP] | si->checkSquares[ROOK];
-  si->checkSquares[KING]   |= relayed_attacks_from<KING>(ksq, sideToMove);
-  }
-#endif
 }
 
 
@@ -677,6 +668,10 @@ void Position::set_state(StateInfo* si) const {
   {
       si->checkersBB = attackers_to(square<KING>(sideToMove)) & pieces(~sideToMove);
   }
+#ifdef RELAY
+  if (is_relay())
+      si->checkersBB |= relayed_attackers_to(square<KING>(sideToMove), ~sideToMove);
+#endif
 
   for (Bitboard b = pieces(); b; )
   {
@@ -835,6 +830,10 @@ Bitboard Position::slider_blockers(Bitboard sliders, Square s, Bitboard& pinners
   // Snipers are sliders that attack 's' when a piece and other snipers are removed
   Bitboard snipers = (  (PseudoAttacks[  ROOK][s] & pieces(QUEEN, ROOK))
                       | (PseudoAttacks[BISHOP][s] & pieces(QUEEN, BISHOP))) & sliders;
+#ifdef RELAY
+  if (is_relay())
+      snipers = PseudoAttacks[QUEEN][s] & (pieces() ^ pieces(PAWN)) & sliders;
+#endif
   Bitboard occupancy = pieces() ^ snipers;
 
   while (snipers)
@@ -853,17 +852,6 @@ Bitboard Position::slider_blockers(Bitboard sliders, Square s, Bitboard& pinners
 }
 
 #ifdef RELAY
-template<PieceType Pt>
-Bitboard Position::relayed_attacks_from(Square s, Color c) const {
-
-  Bitboard b = 0;
-  Bitboard attacks = attacks_from<Pt>(s) & pieces(c);
-
-  while (attacks)
-      b |= attacks_from<Pt>(pop_lsb(&attacks));
-  return b;
-}
-
 template<PieceType Pt>
 Bitboard Position::relayed_attacks_from(Square s, Color c, Bitboard occupied) const {
 
@@ -894,13 +882,14 @@ Bitboard Position::attackers_to(Square s, Bitboard occupied) const {
 #ifdef RELAY
   if (is_relay())
   {
-      Bitboard b = 0;
+      Bitboard b =  (attacks_from<PAWN>(s, BLACK)    & pieces(WHITE, PAWN))
+                  | (attacks_from<PAWN>(s, WHITE)    & pieces(BLACK, PAWN))
+                  | (attacks_from<KNIGHT>(s)         & pieces(KNIGHT))
+                  | (attacks_bb<  ROOK>(s, occupied) & pieces(  ROOK, QUEEN))
+                  | (attacks_bb<BISHOP>(s, occupied) & pieces(BISHOP, QUEEN))
+                  | (attacks_from<KING>(s)           & pieces(KING));
       for (Color c : { WHITE, BLACK })
-          b |=  (attacks_from<PAWN>(s, ~c)                    & pieces(c, PAWN))
-              | (relayed_attacks_from<KNIGHT>(s, c)           & pieces(c, KNIGHT))
-              | (relayed_attacks_from<  ROOK>(s, c, occupied) & pieces(c,   ROOK, QUEEN))
-              | (relayed_attacks_from<BISHOP>(s, c, occupied) & pieces(c, BISHOP, QUEEN))
-              | (relayed_attacks_from<KING>(s, c)             & pieces(c, KING));
+          b |= relayed_attackers_to(s, c, occupied);
       return b;
   }
 #endif
@@ -911,6 +900,29 @@ Bitboard Position::attackers_to(Square s, Bitboard occupied) const {
         | (attacks_bb<BISHOP>(s, occupied) & pieces(BISHOP, QUEEN))
         | (attacks_from<KING>(s)           & pieces(KING));
 }
+
+#ifdef RELAY
+Bitboard Position::relayed_attackers_to(Square s, Color c, Bitboard occupied) const {
+  return   (relayed_attackers_to<KNIGHT>(s, c, occupied) & pieces(c, KNIGHT))
+         | (relayed_attackers_to<  ROOK>(s, c, occupied) & pieces(c,   ROOK, QUEEN))
+         | (relayed_attackers_to<BISHOP>(s, c, occupied) & pieces(c, BISHOP, QUEEN))
+         | (relayed_attackers_to<  KING>(s, c, occupied) & pieces(c, KING));
+}
+
+template<PieceType Pt>
+Bitboard Position::relayed_attackers_to(Square s, Color c, Bitboard occupied) const {
+  Bitboard attacks = attacks_bb(Pt, s, occupied) & pieces(c);
+  Bitboard b = attacks & pieces(Pt);
+
+  for (attacks ^= b; attacks; )
+  {
+      s = pop_lsb(&attacks);
+      if (attacks_from<Pt>(s))
+          b |= s;
+  }
+  return b;
+}
+#endif
 
 #ifdef ATOMIC
 Bitboard Position::slider_attackers_to(Square s, Bitboard occupied) const {
@@ -1813,6 +1825,10 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
   st->key = k;
 
   // Calculate checkers bitboard (if move gives check)
+#ifdef RELAY
+  if (is_relay())
+      givesCheck = true;
+#endif
   st->checkersBB = givesCheck ? attackers_to(square<KING>(them)) & pieces(us) : 0;
 
 #ifdef CRAZYHOUSE

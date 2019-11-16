@@ -128,6 +128,11 @@ public:
   // Attacks to/from a given square
   Bitboard attackers_to(Square s) const;
   Bitboard attackers_to(Square s, Bitboard occupied) const;
+#ifdef RELAY
+  Bitboard relayed_attackers_to(Square s, Color c) const;
+  Bitboard relayed_attackers_to(Square s, Color c, Bitboard occupied) const;
+  template<PieceType> Bitboard relayed_attackers_to(Square s, Color c, Bitboard occupied) const;
+#endif
 #ifdef ATOMIC
   Bitboard slider_attackers_to(Square s) const;
   Bitboard slider_attackers_to(Square s, Bitboard occupied) const;
@@ -533,6 +538,15 @@ inline Bitboard Position::attacks_from(Square s) const {
         : PseudoAttacks[Pt][s];
 }
 
+#ifdef RELAY
+template<PieceType Pt>
+Bitboard Position::relayed_attacks_from(Square s, Color c) const {
+  static_assert(Pt != PAWN, "Pawn attacks need color");
+
+  return relayed_attacks_from<Pt>(s, c, byTypeBB[ALL_PIECES]);
+}
+#endif
+
 template<>
 inline Bitboard Position::attacks_from<PAWN>(Square s, Color c) const {
   return PawnAttacks[c][s];
@@ -546,6 +560,11 @@ inline Bitboard Position::attackers_to(Square s) const {
   return attackers_to(s, byTypeBB[ALL_PIECES]);
 }
 
+#ifdef RELAY
+inline Bitboard Position::relayed_attackers_to(Square s, Color c) const {
+  return relayed_attackers_to(s, c, byTypeBB[ALL_PIECES]);
+}
+#endif
 #ifdef ATOMIC
 inline Bitboard Position::slider_attackers_to(Square s) const {
   return slider_attackers_to(s, byTypeBB[ALL_PIECES]);
