@@ -1597,10 +1597,10 @@ namespace {
 #ifdef ATOMIC
     if (pos.is_atomic())
     {
-        if (   ! pe->passed_count()
+        if (   ! pe->passed_pawns(strongSide)
             && pos.non_pawn_material(strongSide) <= RookValueMg
-            && pos.count<ALL_PIECES>(WHITE) == pos.count<ALL_PIECES>(BLACK))
-            sf = 10;
+            && pos.count<PAWN>(strongSide) <= pos.count<PAWN>(~strongSide))
+            sf = SCALE_FACTOR_NORMAL / 2;
     }
     else
 #endif
