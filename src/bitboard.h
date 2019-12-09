@@ -403,8 +403,10 @@ inline Square pop_lsb(Bitboard* b) {
 inline Square frontmost_sq(Color c, Bitboard b) {
   return c == WHITE ? msb(b) : lsb(b);
 }
+#ifdef TWOKINGS
 inline Square backmost_sq(Color c, Bitboard b) {
   return c == WHITE ? lsb(b) : msb(b);
 }
+#endif
 
 #endif // #ifndef BITBOARD_H_INCLUDED
